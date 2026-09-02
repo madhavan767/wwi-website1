@@ -19,24 +19,16 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// CORS Configuration supporting process.env.CLIENT_URL, localhost, and Vercel domains
-app.use(cors({
-  origin: (origin, callback) => {
-    const allowedClientUrl = process.env.CLIENT_URL;
-    if (
-      !origin ||
-      (allowedClientUrl && origin === allowedClientUrl) ||
-      origin.includes('localhost') ||
-      origin.endsWith('.vercel.app') ||
-      origin.includes('wwi.org.in')
-    ) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow requests safely across Vercel environments
-    }
-  },
-  credentials: true
-}));
+// Permissive CORS for Vercel Serverless & Cross-Domain Requests
+const corsOptions = {
+  origin: true, // Dynamically mirror requesting origin to allow credentials
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Rate Limiting for admin auth endpoints
 const authLimiter = rateLimit({
@@ -53,7 +45,7 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use(cookieParser());
 
-// Unauthenticated Health Check Routes (Requirement 6)
+// Unauthenticated Health Check Routes
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
