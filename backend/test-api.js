@@ -35,19 +35,23 @@ async function runTests() {
   console.log('🧪 Running Backend API Automated Verification...\n');
 
   try {
-    // 1. Healthcheck
-    const health = await request('/api/health');
-    console.log('✅ Healthcheck Status:', health.status, health.body.status);
+    // 1. Unauthenticated /health Check (Requirement 6)
+    const healthRoot = await request('/health');
+    console.log('✅ Unauthenticated /health Status:', healthRoot.status, healthRoot.body);
 
-    // 2. Public Blogs
+    // 2. Healthcheck API
+    const health = await request('/api/health');
+    console.log('✅ /api/health Status:', health.status, health.body.status);
+
+    // 3. Public Blogs
     const blogs = await request('/api/blogs');
     console.log('✅ Public Blogs Count:', blogs.body.count);
 
-    // 3. Public Careers
+    // 4. Public Careers
     const careers = await request('/api/careers');
     console.log('✅ Public Careers Count:', careers.body.count);
 
-    // 4. Contact Form Submission
+    // 5. Contact Form Submission
     const contactRes = await request('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,7 +59,7 @@ async function runTests() {
     });
     console.log('✅ Contact Submission Status:', contactRes.status, contactRes.body.message);
 
-    // 5. Admin Login
+    // 6. Admin Login
     const loginRes = await request('/api/v1/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,7 +68,7 @@ async function runTests() {
     console.log('✅ Admin Login Status:', loginRes.status, loginRes.body.success ? 'Success' : 'Failed');
     const token = loginRes.body.token;
 
-    // 6. Admin Protected Dashboard
+    // 7. Admin Protected Dashboard
     const dashRes = await request('/api/v1/admin/dashboard', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
