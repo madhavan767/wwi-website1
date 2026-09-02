@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL && import.meta.env.VITE_API_BASE_URL.trim() !== '')
+  ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+  : (import.meta.env.PROD ? 'https://wwi-website1afafaaeef.vercel.app' : '');
 
 async function fetchAPI(endpoint, options = {}) {
   const defaultHeaders = {
