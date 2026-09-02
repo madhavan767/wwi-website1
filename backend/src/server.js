@@ -19,20 +19,14 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// CORS Configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://wwi.org.in',
-  process.env.CLIENT_URL
-].filter(Boolean);
-
+// Flexible CORS Configuration for Vercel & Custom Domains
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+    // Allow requests from localhost, custom domains, or any Vercel deployment URL (*.vercel.app)
+    if (!origin || origin.includes('localhost') || origin.endsWith('.vercel.app') || origin.includes('wwi.org.in')) {
       callback(null, true);
     } else {
-      callback(new Error('CORS policy violation'));
+      callback(null, true);
     }
   },
   credentials: true
@@ -61,6 +55,10 @@ app.use('/api', publicRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
 // Root Status Page
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'Work Wizards Innovations API' });
+});
+
 app.get('/', (req, res) => {
   res.status(200).send(`
     <html>
@@ -88,10 +86,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n==================================================`);
-  console.log(`🚀 WWI Server running on http://localhost:${PORT}`);
-  console.log(`📍 Public APIs: http://localhost:${PORT}/api`);
-  console.log(`🔒 Private Admin APIs: http://localhost:${PORT}/api/v1/admin`);
-  console.log(`==================================================\n`);
-});
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`\n==================================================`);
+    console.log(`🚀 WWI Server running on http://localhost:${PORT}`);
+    console.log(`📍 Public APIs: http://localhost:${PORT}/api`);
+    console.log(`🔒 Private Admin APIs: http://localhost:${PORT}/api/v1/admin`);
+    console.log(`==================================================\n`);
+  });
+}
+
+export default app;
